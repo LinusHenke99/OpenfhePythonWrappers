@@ -75,6 +75,10 @@ public:
         context->EvalMultKeyGen(privateKey.getKey());
     }
 
+    // void GenRotations (PythonKey<PrivateKey<DCRTPoly>> key, std::vector<int> rotations) {
+    //     context->EvalRotateKeyGen(key.getKey(), rotations);
+    // }
+
     uint32_t GetRingDim() {
         return context->GetRingDimension();
     }
@@ -141,7 +145,20 @@ public:
                 x
                 );
     }
+};
 
+
+class PythonActivation : ActivationFunction {
+public:
+    using ActivationFunction::ActivationFunction;
+
+    const std::function<double (double)> &getFunc() override {
+        PYBIND11_OVERRIDE_PURE(
+                std::function<double (double)>,
+                ActivationFunction,
+                getFunc
+                );
+    }
 };
 
 

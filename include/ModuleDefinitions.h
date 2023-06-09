@@ -1,7 +1,3 @@
-//
-// Created by lchenke on 05.06.23.
-//
-
 #ifndef NEURALPY_MODULEDEFINITIONS_H
 #define NEURALPY_MODULEDEFINITIONS_H
 
@@ -14,6 +10,19 @@
 #include "../include/WrapperClasses.h"
 
 namespace py = pybind11;
+
+
+template<typename T>
+std::function<PythonCiphertext (T&, PythonCiphertext)> initForward() {
+    return [](T& self, PythonCiphertext x) -> PythonCiphertext {
+            Ciphertext<DCRTPoly> input = x.getCiphertext();
+            PythonCiphertext result;
+
+            result.setCiphertext(self.forward(input));
+
+            return result;
+    };
+}
 
 
 void defineBasicOpenFHEModules (py::module_& m) {
@@ -99,6 +108,40 @@ void defineBasicOpenFHEModules (py::module_& m) {
 
 
 void defineNeuralOFHETypes (py::module_& m) {
+    py::class_<Operator, PythonOperator>(m, "Operator")
+            .def(py::init<uint32_t&, std::string>())
+            .def("forward", &Operator::forward);
+
+    py::class_<nn::Conv2D, Operator>(m, "Conv2D")
+            .def(py::init<matVec, std::vector<double>>())
+            .def("__callable__", [](nn::Conv2D& self, PythonCiphertext x) -> PythonCiphertext {
+                Ciphertext<DCRTPoly> input = x.getCiphertext();
+                PythonCiphertext result;
+
+                result.setCiphertext(self.forward(input));
+
+                return result;
+            });
+
+    py::class_<nn::Gemm, Operator>(m, "Gemm")
+            .def(py::init<matVec, std::vector<double>>())
+            .def("__callable__", initForward<nn::Gemm>());
+
+
+    py::class_<ActivationFunction, PythonActivation>(m, "ActivationFunction")
+            .def(py::init<double, double, uint32_t, uint32_t&, std::string>());
+
+    py::class_<nn::ReLU, ActivationFunction>(m, "ReLU")
+            .def(py::init<double, double, unsigned int>())
+            .def("__callable__", initForward<nn::ReLU>());
+
+    py::class_<nn::Swish, ActivationFunction>(m, "Swish")
+            .def(py::init<double, double, unsigned int>())
+            .def("__callable__", initForward<nn::Swish>());
+
+    py::class_<nn::Sigmoid, ActivationFunction>(m, "Sigmoid")
+            .def(py::init<double, double, unsigned int>())
+            .def("__callable__", initForward<nn::Sigmoid>());
 }
 
 
