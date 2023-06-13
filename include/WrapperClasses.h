@@ -35,6 +35,10 @@ public:
         return pl;
     }
 
+    void SetLength (uint32_t length) {
+        pl->SetLength(length);
+    }
+
     std::vector<double> GetPackedValue () {
         return pl->GetRealPackedValue();
     }
@@ -75,9 +79,10 @@ public:
         context->EvalMultKeyGen(privateKey.getKey());
     }
 
-    // void GenRotations (PythonKey<PrivateKey<DCRTPoly>> key, std::vector<int> rotations) {
-    //     context->EvalRotateKeyGen(key.getKey(), rotations);
-    // }
+    void GenRotations (PythonKey<PrivateKey<DCRTPoly>> key) {
+        std::vector<int> rotations = GetRotations(context->GetEncodingParams()->GetBatchSize());
+        context->EvalRotateKeyGen(key.getKey(), rotations);
+    }
 
     uint32_t GetRingDim() {
         return context->GetRingDimension();
@@ -133,7 +138,7 @@ private:
 };
 
 
-class PythonOperator : Operator {
+class PythonOperator : public Operator {
 public:
     using Operator::Operator;
 
@@ -148,18 +153,36 @@ public:
 };
 
 
-class PythonActivation : ActivationFunction {
+template <class Impl> class PyImpl : public Impl {
+public:
+    using Impl::Impl;
+
+    Ciphertext<DCRTPoly> forward (Ciphertext<DCRTPoly> x) override {
+        PYBIND11_OVERRIDE(Ciphertext<DCRTPoly>, Impl, forward, x);
+    }
+};
+
+
+class PythonActivation : public ActivationFunction {
 public:
     using ActivationFunction::ActivationFunction;
+
+    Ciphertext<DCRTPoly> forward (Ciphertext<DCRTPoly> x) override {
+        PYBIND11_OVERRIDE(
+                Ciphertext<DCRTPoly>,
+                ActivationFunction,
+                forward,
+                x
+        );
+    }
 
     const std::function<double (double)> &getFunc() override {
         PYBIND11_OVERRIDE_PURE(
                 std::function<double (double)>,
                 ActivationFunction,
                 getFunc
-                );
+        );
     }
 };
-
 
 #endif //NEURALPY_WRAPPERCLASSES_H

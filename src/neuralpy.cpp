@@ -14,6 +14,6 @@ PYBIND11_MODULE(neuralpy, m) {
 
     defineNeuralOFHETypes(m);
 
-    // m.def("InitializeEnvironment", &InitializePythonEnvironment, py::arg("context"), py::arg("batch_size"), py::arg("initial_channels"));
+    m.def("SetContext", &InitializePythonEnvironment, py::arg("context"));
 
 }

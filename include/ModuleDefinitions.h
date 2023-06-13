@@ -8,6 +8,7 @@
 #include "NeuralOFHE/NeuralOFHE.h"
 
 #include "../include/WrapperClasses.h"
+#include "WrapperFunctions.h"
 
 namespace py = pybind11;
 
@@ -83,7 +84,8 @@ void defineBasicOpenFHEModules (py::module_& m) {
 
     py::class_<PythonPlaintext>(m, "Plaintext")
             .def(py::init<>())
-            .def("GetPackedValue", &PythonPlaintext::GetPackedValue);
+            .def("GetPackedValue", &PythonPlaintext::GetPackedValue)
+            .def("SetLength", &PythonPlaintext::SetLength, py::arg("length"));
 
 
     py::enum_<PKESchemeFeature>(m, "PKESchemeFeature")
@@ -103,45 +105,50 @@ void defineBasicOpenFHEModules (py::module_& m) {
             .def("Encrypt", &PythonContext::Encrypt, py::arg("plaintext"), py::arg("publicKey"))
             .def("PackPlaintext", &PythonContext::PackPlaintext, py::arg("plaintext"))
             .def("Decrypt", &PythonContext::Decrypt, py::arg("ciphertext"), py::arg("privateKey"))
-            .def("EvalMultKeyGen", &PythonContext::EvalMultKeyGen, py::arg("privateKey"));
+            .def("EvalMultKeyGen", &PythonContext::EvalMultKeyGen, py::arg("privateKey"))
+            .def("GenRotateKeys", &PythonContext::GenRotations);
 }
 
 
 void defineNeuralOFHETypes (py::module_& m) {
     py::class_<Operator, PythonOperator>(m, "Operator")
             .def(py::init<uint32_t&, std::string>())
-            .def("forward", &Operator::forward);
+            .def("forward", &Operator::forward)
+            .def("GetName", &Operator::getName);
 
-    py::class_<nn::Conv2D, Operator>(m, "Conv2D")
+    py::class_<nn::Conv2D, PyImpl<nn::Conv2D>, Operator>(m, "Conv2D")
             .def(py::init<matVec, std::vector<double>>())
-            .def("__callable__", [](nn::Conv2D& self, PythonCiphertext x) -> PythonCiphertext {
-                Ciphertext<DCRTPoly> input = x.getCiphertext();
-                PythonCiphertext result;
+            .def("__call__", initForward<nn::Conv2D>());
 
-                result.setCiphertext(self.forward(input));
-
-                return result;
-            });
-
-    py::class_<nn::Gemm, Operator>(m, "Gemm")
+    py::class_<nn::Gemm, PyImpl<nn::Gemm>, Operator>(m, "Gemm")
             .def(py::init<matVec, std::vector<double>>())
-            .def("__callable__", initForward<nn::Gemm>());
+            .def("__call__", initForward<nn::Gemm>());
+
+    py::class_<nn::AveragePool, PyImpl<nn::AveragePool>, Operator>(m, "AveragePool")
+            .def(py::init<matVec>())
+            .def("__call__", initForward<nn::AveragePool>());
+
+    py::class_<nn::BatchNorm, PyImpl<nn::BatchNorm>, Operator>(m, "BatchNorm")
+            .def(py::init<std::vector<double>, std::vector<double>, double, double, double>(),
+                    py::arg("weights"), py::arg("biases"), py::arg("var"), py::arg("mu"), py::arg("epsilon"))
+            .def("__call__", initForward<nn::BatchNorm>());
 
 
-    py::class_<ActivationFunction, PythonActivation>(m, "ActivationFunction")
+    py::class_<ActivationFunction, PythonActivation, Operator>(m, "ActivationFunction")
             .def(py::init<double, double, uint32_t, uint32_t&, std::string>());
 
     py::class_<nn::ReLU, ActivationFunction>(m, "ReLU")
             .def(py::init<double, double, unsigned int>())
-            .def("__callable__", initForward<nn::ReLU>());
+            .def("__call__", initForward<nn::ReLU>());
 
     py::class_<nn::Swish, ActivationFunction>(m, "Swish")
             .def(py::init<double, double, unsigned int>())
-            .def("__callable__", initForward<nn::Swish>());
+            .def("__call__", initForward<nn::Swish>());
 
     py::class_<nn::Sigmoid, ActivationFunction>(m, "Sigmoid")
             .def(py::init<double, double, unsigned int>())
-            .def("__callable__", initForward<nn::Sigmoid>());
+            .def("__call__", initForward<nn::Sigmoid>());
+
 }
 
 

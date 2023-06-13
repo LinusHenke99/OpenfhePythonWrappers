@@ -5,8 +5,8 @@
 #include "NeuralOFHE/NeuralOFHE.h"
 
 
-void InitializePythonEnvironment (PythonContext context, uint32_t batchSize, uint32_t initialChannels) {
-    InitializeCryptoEnvironment(context.getContext(), batchSize, initialChannels);
+void InitializePythonEnvironment (PythonContext context) {
+    InitializeCryptoEnvironment(context.getContext());
 }
 
 
