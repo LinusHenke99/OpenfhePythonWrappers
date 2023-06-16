@@ -10,10 +10,9 @@ namespace py = pybind11;
 
 
 PYBIND11_MODULE(neuralpy, m) {
+    defineEnums(m);
     defineBasicOpenFHEModules(m);
-
     defineNeuralOFHETypes(m);
-
-    m.def("SetContext", &InitializePythonEnvironment, py::arg("context"));
-
+    m.def("SetContext", &SetPythonContext, py::arg("context"));
+    m.def("MakeContext", &MakeContext, py::arg("parameters"));
 }

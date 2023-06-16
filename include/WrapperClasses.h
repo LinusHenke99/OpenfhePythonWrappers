@@ -1,11 +1,16 @@
 #ifndef NEURALPY_WRAPPERCLASSES_H
 #define NEURALPY_WRAPPERCLASSES_H
 
+#include "openfhe.h"
+#include "key/key-ser.h"
+#include "scheme/ckksrns/ckksrns-ser.h"
+#include "cryptocontext-ser.h"
+
 typedef CCParams<CryptoContextCKKSRNS> Parameters;
 typedef Ciphertext<DCRTPoly> Cipher;
 typedef CryptoContext<DCRTPoly> Context;
 
-template<typename T>
+template<class T>
 class PythonKey {
 public:
     PythonKey() {};
@@ -18,8 +23,39 @@ public:
         return key;
     }
 
+    void load(std::string filePath) {
+        if (!Serial::DeserializeFromFile(filePath, key, SerType::BINARY)) {
+            std::cerr << "Error deserializing key from " << filePath << "." << std::endl;
+            exit(1);
+        }
+
+        std::cout << "Key deserialized from " << filePath << "." << std::endl;
+    }
+
+    void save(std::string filePath) {
+        if (!Serial::SerializeToFile(filePath, key, SerType::BINARY)) {
+            std::cerr << "Error serializing key to " << filePath << "." << std::endl;
+            std::exit(1);
+        }
+        std::cout << "Key serialized to " << filePath << "." << std::endl;
+    }
+
 private:
     T key;
+};
+
+
+class PythonKeypair {
+public:
+    PythonKeypair () {
+    }
+
+    PythonKey<PublicKey<DCRTPoly>> publicKey;
+
+    PythonKey<PrivateKey<DCRTPoly>> privateKey;
+
+private:
+    KeyPair<DCRTPoly> keys;
 };
 
 
@@ -67,8 +103,11 @@ private:
 
 class PythonContext {
 public:
-    PythonContext (Parameters params) {
-        context = GenCryptoContext(params);
+    PythonContext () {
+    }
+
+    void SetContext(Context cont) {
+        this->context = cont;
     }
 
     void Enable(PKESchemeFeature feature) {
@@ -110,31 +149,99 @@ public:
         return result;
     }
 
+    PythonKeypair KeyGen () {
+        PythonKeypair keys;
+        auto keyPair = context->KeyGen();
+
+        keys.privateKey.setKey(keyPair.secretKey);
+        keys.publicKey.setKey(keyPair.publicKey);
+
+        return keys;
+    }
+
     Context getContext() {
         return context;
     }
 
-private:
-    Context context;
-};
-
-
-class PythonKeypair {
-public:
-    PythonKeypair (PythonContext context) {
-        keys = context.getContext()->KeyGen();
-
-        publicKey.setKey(keys.publicKey);
-
-        privateKey.setKey(keys.secretKey);
+    void load(std::string filePath) {
+        if (!Serial::DeserializeFromFile(filePath, context, SerType::BINARY)) {
+            std::cerr << "Error loading context" << std::endl;
+            exit(1);
+        }
+        std::cout << "Context has been loaded." << std::endl;
     }
 
-    PythonKey<PublicKey<DCRTPoly>> publicKey;
+    void loadMultKeys(std::string filePath) {
+        context->ClearEvalMultKeys();
 
-    PythonKey<PrivateKey<DCRTPoly>> privateKey;
+        std::ifstream multKeyIStream(filePath, std::ios::in | std::ios::binary);
+        if (!multKeyIStream.is_open()) {
+            std::cerr << "Error opening mult. key file." << std::endl;
+            exit(1);
+        }
+        if (!context->DeserializeEvalMultKey(multKeyIStream, SerType::BINARY)) {
+            std::cerr << "Error loading mult. key." << std::endl;
+            exit(1);
+        }
+        std::cout << "Deserialized mult. key" << std::endl;
+        multKeyIStream.close();
+    }
+
+    void loadRotKeys (std::string filePath) {
+        context->ClearEvalAutomorphismKeys();
+
+        std::ifstream rotKeyIStream(filePath, std::ios::in | std::ios::binary);
+        if (!rotKeyIStream.is_open()) {
+            std::cerr << "Error opening rot. key file." << std::endl;
+            exit(1);
+        }
+        if (!context->DeserializeEvalAutomorphismKey(rotKeyIStream, SerType::BINARY)) {
+            std::cerr << "Error loading rot. key." << std::endl;
+            exit(1);
+        }
+        std::cout << "Deserialized rot. key" << std::endl;
+        rotKeyIStream.close();
+    }
+
+    void save(std::string filePath) {
+        if (!Serial::SerializeToFile(filePath, context, SerType::BINARY)) {
+            std::cerr << "Error serializing context." << std::endl;
+            exit(1);
+        }
+        std::cout << "Cryptocontext serialized!" << std::endl;
+    }
+
+    void saveMultKeys(std::string filePath) {
+        std::ofstream multKeyFile(filePath, std::ios::out | std::ios::binary);
+        if (multKeyFile.is_open()) {
+            if (!context->SerializeEvalMultKey(multKeyFile, SerType::BINARY)) {
+                std::cerr << "Error serializing multiplication key." << std::endl;
+                std::exit(1);
+            }
+            std::cout << "Multiplication key serialized!" << std::endl;
+            multKeyFile.close();
+
+        } else {
+            std::cerr << "Error opening Mult Key file..." << std::endl;
+        }
+    }
+
+    void saveRotKeys(std::string filePath) {
+        std::ofstream rotKeyFile(filePath, std::ios::out | std::ios::binary);
+        if (rotKeyFile.is_open()) {
+            if (!context->SerializeEvalAutomorphismKey(rotKeyFile, SerType::BINARY)) {
+                std::cerr << "Error serializing rotation key." << std::endl;
+                std::exit(1);
+            }
+            std::cout << "Rotation key serialized!" << std::endl;
+            rotKeyFile.close();
+        } else {
+            std::cerr << "Error opening Mult Key file..." << std::endl;
+        }
+    }
 
 private:
-    KeyPair<DCRTPoly> keys;
+    Context context;
 };
 
 

@@ -5,8 +5,18 @@
 #include "NeuralOFHE/NeuralOFHE.h"
 
 
-void InitializePythonEnvironment (PythonContext context) {
-    InitializeCryptoEnvironment(context.getContext());
+void SetPythonContext (PythonContext context) {
+    SetContext(context.getContext());
+}
+
+
+PythonContext MakeContext(Parameters params) {
+    auto context = GenCryptoContext(params);
+
+    PythonContext result;
+    result.SetContext(context);
+
+    return result;
 }
 
 

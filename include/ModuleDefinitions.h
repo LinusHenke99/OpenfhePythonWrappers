@@ -26,7 +26,7 @@ std::function<PythonCiphertext (T&, PythonCiphertext)> initForward() {
 }
 
 
-void defineBasicOpenFHEModules (py::module_& m) {
+void defineEnums (py::module_& m) {
     py::enum_<SecurityLevel>(m, "SecurityLevel")
             .value("HEStd_NotSet", HEStd_NotSet)
             .value("HEStd_128_classic", HEStd_128_classic)
@@ -49,12 +49,25 @@ void defineBasicOpenFHEModules (py::module_& m) {
             .value("SPARSE_TERNARY", SPARSE_TERNARY)
             .export_values();
 
+    py::enum_<PKESchemeFeature>(m, "PKESchemeFeature")
+            .value("PKE", PKE)
+            .value("KEYSWITCH", KEYSWITCH)
+            .value("PRE", PRE)
+            .value("LEVELEDSHE", LEVELEDSHE)
+            .value("ADVANCEDSHE", ADVANCEDSHE)
+            .value("MULTIPARTY", MULTIPARTY)
+            .value("FHE", FHE)
+            .export_values();
+
     py::enum_<KeySwitchTechnique>(m, "KeySwitchTechnique")
             .value("INVALID_KS_TECH", INVALID_KS_TECH)
             .value("BV", BV)
             .value("HYBRID", HYBRID)
             .export_values();
+}
 
+
+void defineBasicOpenFHEModules (py::module_& m) {
     py::class_<Parameters>(m, "Parameters")
             .def(py::init<>())
             .def("SetRingDim", &Parameters::SetRingDim, py::arg("ring_dim"))
@@ -67,17 +80,19 @@ void defineBasicOpenFHEModules (py::module_& m) {
             .def("SetSecretKeyDist", &Params::SetSecretKeyDist, py::arg("distribution"))
             .def("SetKeySwitchTechnique", &Params::SetKeySwitchTechnique, py::arg("technique"));
 
-
     py::class_<PythonKey<PublicKey<DCRTPoly>>>(m, "PublicKey")
-            .def(py::init<>());
+            .def(py::init<>())
+            .def("load", &PythonKey<PublicKey<DCRTPoly>>::load, py::arg("filePath"))
+            .def("save", &PythonKey<PublicKey<DCRTPoly>>::save, py::arg("filePath"));
     py::class_<PythonKey<PrivateKey<DCRTPoly>>>(m, "PrivateKey")
-            .def(py::init<>());
+            .def(py::init<>())
+            .def("load", &PythonKey<PrivateKey<DCRTPoly>>::load, py::arg("filePath"))
+            .def("save", &PythonKey<PrivateKey<DCRTPoly>>::save, py::arg("filePath"));
 
     py::class_<PythonKeypair>(m, "KeyPair")
-            .def(py::init<PythonContext>())
-            .def_readonly("publicKey", &PythonKeypair::publicKey)
-            .def_readonly("privateKey", &PythonKeypair::privateKey);
-
+            .def(py::init<>())
+            .def_readwrite("publicKey", &PythonKeypair::publicKey)
+            .def_readwrite("privateKey", &PythonKeypair::privateKey);
 
     py::class_<PythonCiphertext>(m, "Ciphertext")
             .def(py::init<>());
@@ -87,26 +102,22 @@ void defineBasicOpenFHEModules (py::module_& m) {
             .def("GetPackedValue", &PythonPlaintext::GetPackedValue)
             .def("SetLength", &PythonPlaintext::SetLength, py::arg("length"));
 
-
-    py::enum_<PKESchemeFeature>(m, "PKESchemeFeature")
-            .value("PKE", PKE)
-            .value("KEYSWITCH", KEYSWITCH)
-            .value("PRE", PRE)
-            .value("LEVELEDSHE", LEVELEDSHE)
-            .value("ADVANCEDSHE", ADVANCEDSHE)
-            .value("MULTIPARTY", MULTIPARTY)
-            .value("FHE", FHE)
-            .export_values();
-
     py::class_<PythonContext>(m, "Context")
-            .def(py::init<Parameters>(), py::arg("parameters"))
+            .def(py::init<>())
             .def("Enable", &PythonContext::Enable, py::arg("feature"))
+            .def("KeyGen", &PythonContext::KeyGen)
             .def("GetRingDimension", &PythonContext::GetRingDim)
             .def("Encrypt", &PythonContext::Encrypt, py::arg("plaintext"), py::arg("publicKey"))
             .def("PackPlaintext", &PythonContext::PackPlaintext, py::arg("plaintext"))
             .def("Decrypt", &PythonContext::Decrypt, py::arg("ciphertext"), py::arg("privateKey"))
             .def("EvalMultKeyGen", &PythonContext::EvalMultKeyGen, py::arg("privateKey"))
-            .def("GenRotateKeys", &PythonContext::GenRotations);
+            .def("GenRotateKeys", &PythonContext::GenRotations)
+            .def("save", &PythonContext::save, py::arg("filePath"))
+            .def("load", &PythonContext::load, py::arg("filePath"))
+            .def("saveMultKeys", &PythonContext::saveMultKeys, py::arg("filePath"))
+            .def("loadMultKeys", &PythonContext::loadMultKeys, py::arg("filePath"))
+            .def("saveRotKeys", &PythonContext::saveRotKeys, py::arg("filePath"))
+            .def("loadRotKeys", &PythonContext::loadRotKeys, py::arg("filePath"));
 }
 
 
