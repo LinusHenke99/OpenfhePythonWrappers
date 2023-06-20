@@ -6,9 +6,8 @@ def main() -> None:
     params.SetMultiplicativeDepth(9)
     params.SetFirstModSize(35)
     params.SetScalingModSize(30)
-    params.SetSecurityLevel(neuralpy.HEStd_NotSet)
+    params.SetSecurityLevel(neuralpy.HEStd_128_classic)
     params.SetBatchSize(1024)
-    params.SetRingDim(8192)
     params.SetScalingTechnique(neuralpy.FLEXIBLEAUTO)
 
     context = neuralpy.MakeContext(params)
