@@ -7,5 +7,5 @@ are created using [Pybind11](https://pybind11.readthedocs.io/en/stable/).
 ## Dependencies
 - [Pybind11](https://github.com/pybind/pybind11)
 - [OpenFHE](https://github.com/openfheorg/openfhe-development)
-- [NeuralOFHE](https://github.com/openfheorg/openfhe-development)
+- [NeuralOFHE](https://github.com/LinusHenke99/NeuralOFHE)
 - [CMake 3.12 or newer](https://cmake.org/)
