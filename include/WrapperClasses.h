@@ -13,7 +13,7 @@ typedef CryptoContext<DCRTPoly> Context;
 template<class T>
 class PythonKey {
 public:
-    PythonKey() {};
+    PythonKey() {}
 
     void setKey(T k) {
         this->key = k;
@@ -47,8 +47,7 @@ private:
 
 class PythonKeypair {
 public:
-    PythonKeypair () {
-    }
+    PythonKeypair () {}
 
     PythonKey<PublicKey<DCRTPoly>> publicKey;
 
@@ -61,7 +60,7 @@ private:
 
 class PythonPlaintext {
 public:
-    PythonPlaintext () {};
+    PythonPlaintext () {}
 
     void setPlaintext(Plaintext plain) {
         this->pl = plain;
@@ -86,7 +85,7 @@ private:
 
 class PythonCiphertext {
 public:
-    PythonCiphertext () {};
+    PythonCiphertext () {}
 
     void setCiphertext(Cipher cipher) {
         ciphertext = cipher;
@@ -96,6 +95,22 @@ public:
         return ciphertext;
     }
 
+    void load(std::string filePath) {
+        if (!Serial::DeserializeFromFile(filePath, ciphertext, SerType::BINARY)) {
+            std::cerr << "Could not deserialize " + filePath + " ciphertext" << std::endl;
+            exit(1);
+        }
+        std::cout << "Ciphertext " + filePath << " deserialized." << std::endl;
+    }
+
+    void save(std::string filePath) {
+        if(!Serial::SerializeToFile(filePath, ciphertext, SerType::BINARY)) {
+            std::cerr << "Error Serializing ciphertext." << std::endl;
+            exit(1);
+        }
+        std::cout << "Ciphertext serialized." << std::endl;
+    }
+
 private:
     Cipher ciphertext;
 };
@@ -103,8 +118,7 @@ private:
 
 class PythonContext {
 public:
-    PythonContext () {
-    }
+    PythonContext () {}
 
     void SetContext(Context cont) {
         this->context = cont;

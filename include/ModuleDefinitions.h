@@ -95,7 +95,9 @@ void defineBasicOpenFHEModules (py::module_& m) {
             .def_readwrite("privateKey", &PythonKeypair::privateKey);
 
     py::class_<PythonCiphertext>(m, "Ciphertext")
-            .def(py::init<>());
+            .def(py::init<>())
+            .def("save", &PythonCiphertext::save, py::arg("filePath"))
+            .def("load", &PythonCiphertext::load, py::arg("filePath"));
 
     py::class_<PythonPlaintext>(m, "Plaintext")
             .def(py::init<>())
