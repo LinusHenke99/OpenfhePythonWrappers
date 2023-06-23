@@ -1,3 +1,13 @@
+/**
+ * This file includes definitions of classes wrapped around the plane OpenFHE and NeuralOFHE classes because there were
+ * issues caused by long template arguments and typedefs which where assigned to shared pointers. Each class requires a
+ * getter and setter method for setting and getting the shared pointer to the underlying OpenFHE object. The plain
+ * OpenFHE will not be directly accessed by the Python front end. Furthermore there will only be an empty constructor
+ * that does nothing. The interactions between the classes will be handled by C++ and not within the Python application
+ *
+ * @author Linus Henke
+ * @
+ */
 #ifndef NEURALPY_WRAPPERCLASSES_H
 #define NEURALPY_WRAPPERCLASSES_H
 

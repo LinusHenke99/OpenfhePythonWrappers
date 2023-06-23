@@ -13,6 +13,12 @@
 namespace py = pybind11;
 
 
+/***
+ * Returns the forward function as a C++ lambda in order to reduce boilerplate code.
+ *
+ * @tparam T Class of the Operation
+ * @return Lambda applying the forward function to an input.
+ */
 template<typename T>
 std::function<PythonCiphertext (T&, PythonCiphertext)> initForward() {
     return [](T& self, PythonCiphertext x) -> PythonCiphertext {
@@ -26,6 +32,9 @@ std::function<PythonCiphertext (T&, PythonCiphertext)> initForward() {
 }
 
 
+/***
+ * Defines all enums, OpenFHE uses for setting CKKS parameters.
+ */
 void defineEnums (py::module_& m) {
     py::enum_<SecurityLevel>(m, "SecurityLevel")
             .value("HEStd_NotSet", HEStd_NotSet)
@@ -67,6 +76,9 @@ void defineEnums (py::module_& m) {
 }
 
 
+/***
+ * Defines basic OpenFHE classes used for creating a CKKS application.
+ */
 void defineBasicOpenFHEModules (py::module_& m) {
     py::class_<Parameters>(m, "Parameters")
             .def(py::init<>())
@@ -84,6 +96,7 @@ void defineBasicOpenFHEModules (py::module_& m) {
             .def(py::init<>())
             .def("load", &PythonKey<PublicKey<DCRTPoly>>::load, py::arg("filePath"))
             .def("save", &PythonKey<PublicKey<DCRTPoly>>::save, py::arg("filePath"));
+
     py::class_<PythonKey<PrivateKey<DCRTPoly>>>(m, "PrivateKey")
             .def(py::init<>())
             .def("load", &PythonKey<PrivateKey<DCRTPoly>>::load, py::arg("filePath"))
@@ -123,10 +136,12 @@ void defineBasicOpenFHEModules (py::module_& m) {
 }
 
 
+/***
+ * Defines wrappers around the NeuralOFHE classes
+ */
 void defineNeuralOFHETypes (py::module_& m) {
     py::class_<Operator, PythonOperator>(m, "Operator")
             .def(py::init<uint32_t&, std::string>())
-            .def("forward", &Operator::forward)
             .def("GetName", &Operator::getName);
 
     py::class_<nn::Conv2D, PyImpl<nn::Conv2D>, Operator>(m, "Conv2D")
