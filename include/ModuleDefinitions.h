@@ -152,9 +152,9 @@ void defineNeuralOFHETypes (py::module_& m) {
             .def(py::init<double, double, unsigned int>())
             .def("__call__", initForward<nn::ReLU>());
 
-    py::class_<nn::Swish, ActivationFunction>(m, "Swish")
+    py::class_<nn::SiLU, ActivationFunction>(m, "SiLU")
             .def(py::init<double, double, unsigned int>())
-            .def("__call__", initForward<nn::Swish>());
+            .def("__call__", initForward<nn::SiLU>());
 
     py::class_<nn::Sigmoid, ActivationFunction>(m, "Sigmoid")
             .def(py::init<double, double, unsigned int>())
