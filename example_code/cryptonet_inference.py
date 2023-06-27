@@ -7,8 +7,8 @@ from time import time
 
 
 def main() -> None:
+    # Choosing random image from dataset
     dirlist = listdir("images")
-
     filename = choice(dirlist)
 
     image = np.load("images/" + filename)[0][0]
@@ -16,6 +16,7 @@ def main() -> None:
     copy = image.copy()
     image = list(image.flat)
 
+    # Generate context and keypair object in order to load them from file
     context = neuralpy.Context()
     keypair = neuralpy.KeyPair()
 
@@ -26,12 +27,16 @@ def main() -> None:
     keypair.publicKey.load("keys/publicKey")
     keypair.privateKey.load("keys/privateKey")
 
+    # Setting context object for the crypto environment
     neuralpy.SetContext(context)
 
+    # Encode image into CKKS plaintext
     plain = context.PackPlaintext(image)
 
+    # Encrypt image
     x = context.Encrypt(plain, keypair.publicKey)
 
+    # Define operations
     operations = [
         neuralpy.Conv2D(np.load("model/_Conv_0_weights.npy"), np.load("model/_Conv_0_bias.npy")),
         neuralpy.ReLU(-6.5318193435668945, 8.548895835876465, 3),
@@ -42,6 +47,7 @@ def main() -> None:
 
     total_time = 0
 
+    # Carrying out operations
     for operation in operations:
         print("Beginning calculation of {}".format(operation.GetName()))
         start = time()
@@ -54,6 +60,7 @@ def main() -> None:
         print("Took {}s".format(elapsed))
 
 
+    # Decrypt image
     result = context.Decrypt(x, keypair.privateKey)
     result.SetLength(10)
     result = result.GetPackedValue()

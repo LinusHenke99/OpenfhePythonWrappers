@@ -2,6 +2,7 @@ import neuralpy
 
 
 def main() -> None:
+    # Setting up parameters for FHE
     params = neuralpy.Parameters()
     params.SetMultiplicativeDepth(9)
     params.SetFirstModSize(35)
@@ -10,8 +11,8 @@ def main() -> None:
     params.SetBatchSize(1024)
     params.SetScalingTechnique(neuralpy.FLEXIBLEAUTO)
 
+    # Generating context object and enabling features
     context = neuralpy.MakeContext(params)
-
     context.Enable(neuralpy.PKE)
     context.Enable(neuralpy.LEVELEDSHE)
     context.Enable(neuralpy.KEYSWITCH)
@@ -19,6 +20,7 @@ def main() -> None:
 
     print("Context with ring dimension: {}".format(context.GetRingDimension()))
 
+    # Key generation
     keypair = context.KeyGen()
 
     print("Generating muliplication keys...")
@@ -29,6 +31,7 @@ def main() -> None:
     context.GenRotateKeys(keypair.privateKey)
     print("Done!")
 
+    # Saving keys to file
     context.save("keys/context")
     context.saveMultKeys("keys/multKeys")
     context.saveRotKeys("keys/rotKeys")
