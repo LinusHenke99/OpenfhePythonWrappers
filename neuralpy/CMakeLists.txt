@@ -19,4 +19,19 @@ include_directories( ${OpenFHE_INCLUDE}/pke )
 
 find_package(pybind11 CONFIG)
 find_package(NeuralOFHE REQUIRED)
-pybind11_add_module(neuralpy neuralpy.cpp)
+pybind11_add_module(neuralpy MODULE neuralpy.cpp)
+
+target_link_libraries(neuralpy PRIVATE NeuralOFHE)
+
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
+
+execute_process(
+        COMMAND "${Python_EXECUTABLE}" -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+        OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+message(STATUS "Python site packages directory: ${PYTHON_SITE_PACKAGES}")
+install(TARGETS neuralpy LIBRARY DESTINATION ${PYTHON_SITE_PACKAGES})
+
+file(MAKE_DIRECTORY example_code/keys)
