@@ -5,11 +5,13 @@ def main() -> None:
     # Setting up parameters for FHE
     params = neuralpy.Parameters()
     params.SetMultiplicativeDepth(9)
-    params.SetFirstModSize(35)
-    params.SetScalingModSize(30)
-    params.SetSecurityLevel(neuralpy.HEStd_128_classic)
+    params.SetFirstModSize(36)
+    params.SetScalingModSize(29)
+    # params.SetSecurityLevel(neuralpy.HEStd_128_classic)
+    params.SetSecurityLevel(neuralpy.HEStd_NotSet)
     params.SetBatchSize(1024)
     params.SetScalingTechnique(neuralpy.FLEXIBLEAUTO)
+    params.SetRingDim(8192)
 
     # Generating context object and enabling features
     context = neuralpy.MakeContext(params)

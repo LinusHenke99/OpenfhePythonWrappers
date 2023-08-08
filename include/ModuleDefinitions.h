@@ -110,7 +110,9 @@ void defineBasicOpenFHEModules (py::module_& m) {
     py::class_<PythonCiphertext>(m, "Ciphertext")
             .def(py::init<>())
             .def("save", &PythonCiphertext::save, py::arg("filePath"))
-            .def("load", &PythonCiphertext::load, py::arg("filePath"));
+            .def("load", &PythonCiphertext::load, py::arg("filePath"))
+            .def("setSlots", &PythonCiphertext::setSlots, py::arg("slots"))
+            .def("getSlots", &PythonCiphertext::getSlots);
 
     py::class_<PythonPlaintext>(m, "Plaintext")
             .def(py::init<>())
@@ -119,20 +121,71 @@ void defineBasicOpenFHEModules (py::module_& m) {
 
     py::class_<PythonContext>(m, "Context")
             .def(py::init<>())
-            .def("Enable", &PythonContext::Enable, py::arg("feature"))
-            .def("KeyGen", &PythonContext::KeyGen)
-            .def("GetRingDimension", &PythonContext::GetRingDim)
-            .def("Encrypt", &PythonContext::Encrypt, py::arg("plaintext"), py::arg("publicKey"))
-            .def("PackPlaintext", &PythonContext::PackPlaintext, py::arg("plaintext"))
-            .def("Decrypt", &PythonContext::Decrypt, py::arg("ciphertext"), py::arg("privateKey"))
-            .def("EvalMultKeyGen", &PythonContext::EvalMultKeyGen, py::arg("privateKey"))
-            .def("GenRotateKeys", &PythonContext::GenRotations)
-            .def("save", &PythonContext::save, py::arg("filePath"))
-            .def("load", &PythonContext::load, py::arg("filePath"))
-            .def("saveMultKeys", &PythonContext::saveMultKeys, py::arg("filePath"))
-            .def("loadMultKeys", &PythonContext::loadMultKeys, py::arg("filePath"))
-            .def("saveRotKeys", &PythonContext::saveRotKeys, py::arg("filePath"))
-            .def("loadRotKeys", &PythonContext::loadRotKeys, py::arg("filePath"));
+            .def("Enable", &PythonContext::Enable,
+                 "Enable an OpenFHE feature.",
+                 py::arg("feature"))
+            .def("KeyGen", &PythonContext::KeyGen,
+                 "Generate keypair.")
+            .def("GetRingDimension", &PythonContext::GetRingDim,
+                 "Getter function for the ring dimension.")
+            .def("Encrypt", &PythonContext::Encrypt,
+                 "Encrypt an OpenFHE plaintext.",
+                 py::arg("plaintext"),
+                 py::arg("publicKey"))
+            .def("PackPlaintext", &PythonContext::PackPlaintext,
+                 "Pack a Python iterator into an OpenFHE plaintext.",
+                 py::arg("plaintext"))
+            .def("Decrypt", &PythonContext::Decrypt,
+                 "Decrypt a ciphertext into an OpenFHE plaintext.",
+                 py::arg("ciphertext"),
+                 py::arg("privateKey"))
+            .def("EvalMultKeyGen", &PythonContext::EvalMultKeyGen,
+                 py::arg("privateKey"))
+            .def("GenRotateKeys", &PythonContext::GenRotations,
+                 "Generate rotation keys for doing matrix multiplication with the given batch size.")
+            .def("save", &PythonContext::save,
+                 "Serialize the context to a file.",
+                 py::arg("filePath"))
+            .def("load", &PythonContext::load,
+                 "Deserialize the context from a file.",
+                 py::arg("filePath"))
+            .def("saveMultKeys", &PythonContext::saveMultKeys,
+                 "Serialize the multiplication keys to a file.",
+                 py::arg("filePath"))
+            .def("loadMultKeys", &PythonContext::loadMultKeys,
+                 "Load multiplication keys from a file to the context object.",
+                 py::arg("filePath"))
+            .def("saveRotKeys", &PythonContext::saveRotKeys,
+                 "Save rotation keys to a file.",
+                 py::arg("filePath"))
+            .def("loadRotKeys", &PythonContext::loadRotKeys,
+                 "Read rotation keys from a file into the context object.",
+                 py::arg("filePath"))
+            .def("EvalAdd", py::overload_cast<PythonCiphertext, PythonCiphertext>(&PythonContext::EvalAdd),
+                    "Addition of two ciphertexts a and b.",
+                    py::arg("a"),
+                    py::arg("b"))
+            .def("EvalAdd", py::overload_cast<std::vector<double>, PythonCiphertext>(&PythonContext::EvalAdd),
+                    "Addition of a plaintext a with a ciphertext b",
+                    py::arg("a"),
+                    py::arg("b"))
+            .def("EvalMult", py::overload_cast<PythonCiphertext, PythonCiphertext>(&PythonContext::EvalMult),
+                    "Multiplication of two ciphertexts.",
+                    py::arg("a"),
+                    py::arg("b"))
+            .def("EvalMult", py::overload_cast<std::vector<double>, PythonCiphertext>(&PythonContext::EvalMult),
+                    "Multiplication of a plaintext a with a ciphertext b",
+                    py::arg("a"),
+                    py::arg("b"))
+            .def("EvalSub", py::overload_cast<PythonCiphertext, PythonCiphertext>(&PythonContext::EvalSub),
+                    "Subtraction of ciphertext b from ciphertext a.",
+                    py::arg("a"),
+                    py::arg("b"))
+            .def("EvalSub", py::overload_cast<std::vector<double>, PythonCiphertext, bool>(&PythonContext::EvalSub),
+                    "Subtraction of ciphertext b from plaintext a, dependant on the reverse variable.",
+                    py::arg("a"),
+                    py::arg("b"),
+                    py::arg("reverse")=false);
 }
 
 

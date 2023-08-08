@@ -15,6 +15,7 @@ def main() -> None:
 
     copy = image.copy()
     image = list(image.flat)
+    initial_size = len(image)
 
     # Generate context and keypair object in order to load them from file
     context = neuralpy.Context()
@@ -35,6 +36,8 @@ def main() -> None:
 
     # Encrypt image
     x = context.Encrypt(plain, keypair.publicKey)
+    x.setSlots(initial_size)
+    print("Encrypted ciphertext with {} slots".format(x.getSlots()))
 
     # Define operations
     operations = [
@@ -60,9 +63,11 @@ def main() -> None:
         print("Took {}s".format(elapsed))
 
 
+    output_size = x.getSlots()
+
     # Decrypt image
     result = context.Decrypt(x, keypair.privateKey)
-    result.SetLength(10)
+    result.SetLength(output_size)
     result = result.GetPackedValue()
 
     print(result)

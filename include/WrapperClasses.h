@@ -154,6 +154,24 @@ public:
         std::cout << "Ciphertext serialized." << std::endl;
     }
 
+    /***
+     * Method to set the slots of the ciphertext.
+     *
+     * @param slots Number of slots the ciphertext is supposed to have.
+     */
+    void setSlots(uint32_t slots) {
+        ciphertext->SetSlots(slots);
+    }
+
+    /***
+     * Getter Method for the number of slots in the Ciphertext
+     *
+     * @return Number of slots
+     */
+    uint32_t getSlots() {
+        return ciphertext->GetSlots();
+    }
+
 private:
     Cipher ciphertext;
 };
@@ -178,6 +196,62 @@ public:
      */
     void EvalMultKeyGen (PythonKey<PrivateKey<DCRTPoly>> privateKey) {
         context->EvalMultKeyGen(privateKey.getKey());
+    }
+
+    PythonCiphertext EvalAdd (PythonCiphertext a, PythonCiphertext b) {
+        PythonCiphertext result;
+        Ciphertext<DCRTPoly> ciph_result = context->EvalAdd(a.getCiphertext(), b.getCiphertext());
+        result.setCiphertext(ciph_result);
+
+        return result;
+    }
+
+    PythonCiphertext EvalAdd (std::vector<double> a, PythonCiphertext b) {
+        PythonCiphertext result;
+        Plaintext pl = context->MakeCKKSPackedPlaintext(a);
+        Ciphertext<DCRTPoly> ciph_result = context->EvalAdd(pl, b.getCiphertext());
+        result.setCiphertext(ciph_result);
+
+        return result;
+    }
+
+    PythonCiphertext EvalSub (PythonCiphertext a, PythonCiphertext b) {
+        PythonCiphertext result;
+        Ciphertext<DCRTPoly> ciph_result = context->EvalSub(a.getCiphertext(), b.getCiphertext());
+        result.setCiphertext(ciph_result);
+
+        return result;
+    }
+
+    PythonCiphertext EvalSub (std::vector<double> a, PythonCiphertext b, bool reverse=false) {
+        PythonCiphertext result;
+        Plaintext pl = context->MakeCKKSPackedPlaintext(a);
+        Ciphertext<DCRTPoly> ciph_result;
+        if (!reverse) {
+            ciph_result = context->EvalSub(pl, b.getCiphertext());
+        }else {
+            ciph_result = context->EvalSub(b.getCiphertext(), pl);
+        }
+        result.setCiphertext(ciph_result);
+
+        return result;
+    }
+
+    PythonCiphertext EvalMult (PythonCiphertext a, PythonCiphertext b) {
+        PythonCiphertext result;
+        Ciphertext<DCRTPoly> ciph_result = context->EvalMult(a.getCiphertext(), b.getCiphertext());
+        result.setCiphertext(ciph_result);
+
+        return result;
+    }
+
+    PythonCiphertext EvalMult (std::vector<double> a, PythonCiphertext b) {
+        PythonCiphertext result;
+        Plaintext pl = context->MakeCKKSPackedPlaintext(a);
+        Ciphertext<DCRTPoly> ciph_result = context->EvalMult(pl, b.getCiphertext());
+        result.setCiphertext(ciph_result);
+
+        return result;
     }
 
     /***
@@ -222,6 +296,13 @@ public:
     PythonPlaintext Decrypt(PythonCiphertext cipher, PythonKey<PrivateKey<DCRTPoly>> privateKey) {
         PythonPlaintext result;
         Plaintext pl;
+
+        uint32_t power = 1;
+        while (power <= cipher.getSlots())
+            power *= 2;
+
+        //  Needs to be set to the next largest power of two, otherwise it won't decrypt
+        cipher.setSlots(power);
         context->Decrypt(privateKey.getKey(), cipher.getCiphertext(), &pl);
 
         result.setPlaintext(pl);
