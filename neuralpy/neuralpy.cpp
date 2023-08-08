@@ -1,8 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "../include/ModuleDefinitions.h"
-#include "../include/WrapperFunctions.h"
+#include "include/ModuleDefinitions.h"
+#include "include/WrapperFunctions.h"
 
 
 namespace py = pybind11;
