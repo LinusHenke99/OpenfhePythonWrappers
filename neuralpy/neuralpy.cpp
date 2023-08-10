@@ -14,4 +14,5 @@ PYBIND11_MODULE(neuralpy, m) {
     defineNeuralOFHETypes(m);
     m.def("SetContext", &SetPythonContext, py::arg("context"));
     m.def("MakeContext", &MakeContext, py::arg("parameters"));
+    m.def("GetContext", &GetContext, py::arg("ciphertext"));
 }

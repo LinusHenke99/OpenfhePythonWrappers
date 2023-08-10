@@ -40,5 +40,19 @@ PythonContext MakeContext(Parameters params) {
     return result;
 }
 
+/***
+ * Get Context of a Ciphertext
+ *
+ * @param cipher
+ * @return Context with which the ciphertext was created.
+ */
+PythonContext GetContext(PythonCiphertext cipher) {
+    Context context = cipher.getCiphertext()->GetCryptoContext();
+    PythonContext pyContext;
+    pyContext.SetContext(context);
+
+    return pyContext;
+}
+
 
 #endif //NEURALPY_WRAPPERFUNCTIONS_H

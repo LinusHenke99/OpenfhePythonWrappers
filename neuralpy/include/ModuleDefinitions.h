@@ -169,6 +169,10 @@ void defineBasicOpenFHEModules (py::module_& m) {
                     "Addition of a plaintext a with a ciphertext b",
                     py::arg("a"),
                     py::arg("b"))
+            .def("EvalAdd", py::overload_cast<double, PythonCiphertext>(&PythonContext::EvalAdd),
+                    "Addition of a floating point number a with a ciphertext b",
+                    py::arg("a"),
+                    py::arg("b"))
             .def("EvalMult", py::overload_cast<PythonCiphertext, PythonCiphertext>(&PythonContext::EvalMult),
                     "Multiplication of two ciphertexts.",
                     py::arg("a"),
@@ -177,12 +181,21 @@ void defineBasicOpenFHEModules (py::module_& m) {
                     "Multiplication of a plaintext a with a ciphertext b",
                     py::arg("a"),
                     py::arg("b"))
+            .def("EvalMult", py::overload_cast<double, PythonCiphertext>(&PythonContext::EvalMult),
+                    "Multiplication of a floating point number a with a ciphertext b",
+                    py::arg("a"),
+                    py::arg("b"))
             .def("EvalSub", py::overload_cast<PythonCiphertext, PythonCiphertext>(&PythonContext::EvalSub),
                     "Subtraction of ciphertext b from ciphertext a.",
                     py::arg("a"),
                     py::arg("b"))
             .def("EvalSub", py::overload_cast<std::vector<double>, PythonCiphertext, bool>(&PythonContext::EvalSub),
                     "Subtraction of ciphertext b from plaintext a, dependant on the reverse variable.",
+                    py::arg("a"),
+                    py::arg("b"),
+                    py::arg("reverse")=false)
+            .def("EvalSub", py::overload_cast<double, PythonCiphertext, bool>(&PythonContext::EvalSub),
+                    "Subtraction of ciphertext b from floating point number a, dependant on the reverse variable.",
                     py::arg("a"),
                     py::arg("b"),
                     py::arg("reverse")=false);
