@@ -1,6 +1,0 @@
-setup.py
-neuralpy.egg-info/PKG-INFO
-neuralpy.egg-info/SOURCES.txt
-neuralpy.egg-info/dependency_links.txt
-neuralpy.egg-info/not-zip-safe
-neuralpy.egg-info/top_level.txt
