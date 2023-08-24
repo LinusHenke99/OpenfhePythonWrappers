@@ -3,6 +3,7 @@ import sys
 import subprocess
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from pathlib import Path
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
@@ -11,36 +12,26 @@ class CMakeExtension(Extension):
 
 class BuildCMakeExt(build_ext):
     def run(self):
-        try:
-            subprocess.check_output(['cmake', '--version'])
-        except OSError:
-            raise RuntimeError("CMake must be installed to build the following extensions: " +
-                               ", ".join(e.name for e in self.extensions))
-
+        print(self.extensions)
         for ext in self.extensions:
             self.build_extension(ext)
 
-    def build_extension(self, ext):
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+    def build_extension(self, ext) -> None:
+        try:
+            subprocess.check_output(['cmake', '--version'])
 
-        cfg = 'Debug' if self.debug else 'Release'
-        build_args = ['--config', cfg]
-
-        if not os.path.exists(self.build_temp):
-            os.makedirs(self.build_temp)
-
-        subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp)
-        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+        except OSError:
+            raise RuntimeError('CMake is not installed.')
 
 setup(
     name='neuralpy',
     version='0.1',
     description='My PyBind module',
+    long_description='',
     author='Linus Henke',
     author_email='linus.henke@mci.edu',
-    ext_modules=[CMakeExtension('neuralpy')],
+    ext_modules=[CMakeExtension('neuralpy', sourcedir="neuralpy")],
     cmdclass={'build_ext': BuildCMakeExt},
     zip_safe=False,
+    python_requires=">=3.7"
 )
